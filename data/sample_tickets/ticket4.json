@@ -1,0 +1,4 @@
+{
+  "ticket_id": "T004",
+  "description": "The entire production database became inaccessible after the latest deployment, affecting all users."
+}

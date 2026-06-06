@@ -1,4 +1,4 @@
 {
   "ticket_id": "T002",
-  "description": "Login page crashes when clicking submit."
+  "description": "Login page crashes when clicking submit on Chrome v124."
 }
