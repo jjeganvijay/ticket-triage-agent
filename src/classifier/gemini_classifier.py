@@ -175,16 +175,21 @@ class GeminiClassifier:
                 text = response.text.strip()
                 break
             except Exception as exc:
+                exc_str = str(exc)
+                is_rate_limit = "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "Quota exceeded" in exc_str
+
                 if attempt == max_retries:
                     logger.error("All %d attempts failed to classify ticket %s: %s", max_retries, ticket.ticket_id, exc)
                     raise
-                logger.warning(
-                    "Attempt %d failed for ticket %s due to transient error: %s. Retrying in %.2f seconds...",
-                    attempt, ticket.ticket_id, exc, delay
-                )
-                time.sleep(delay)
-                delay *= 2.0
 
+                sleep_time = 35.0 if is_rate_limit else delay
+                logger.warning(
+                    "Attempt %d failed for ticket %s due to %s: %s. Retrying in %.2f seconds...",
+                    attempt, ticket.ticket_id, "rate limit" if is_rate_limit else "transient error", exc, sleep_time
+                )
+                time.sleep(sleep_time)
+                if not is_rate_limit:
+                    delay *= 2.0
         # Strip markdown code fences if the model adds them anyway
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"\s*```$", "", text).strip()
