@@ -1,6 +1,6 @@
 """
-Gemini Classifier — uses Google Gemini API with few-shot prompting
-to classify support tickets into categories and priorities.
+Gemini Classifier — uses Google Gemini API (google-genai SDK) with few-shot
+prompting to classify support tickets into categories and priorities.
 """
 from __future__ import annotations
 
@@ -9,7 +9,8 @@ import logging
 import os
 import re
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 from src.models.ticket import Ticket
@@ -141,15 +142,11 @@ class GeminiClassifier:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise EnvironmentError("GEMINI_API_KEY is not set.")
-        model_name = os.getenv("MODEL", "gemini-2.5-flash")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=SYSTEM_INSTRUCTION,
-        )
-        logger.info("GeminiClassifier ready — model: %s", model_name)
+        self._model_name = os.getenv("MODEL", "gemini-2.5-flash")
+        self._client = genai.Client(api_key=api_key)
+        logger.info("GeminiClassifier ready — model: %s", self._model_name)
 
-    def classify(self, ticket: Ticket) -> dict:
+    def classify(self, ticket: Ticket, max_retries: int = 5, initial_delay: float = 1.0) -> dict:
         """
         Classify a single ticket via Gemini.
 
@@ -159,10 +156,34 @@ class GeminiClassifier:
         Raises:
             ValueError: If the model response cannot be parsed as JSON.
         """
+        import time
+        from google.genai.errors import APIError
+
         prompt = _build_prompt(ticket)
-        logger.debug("Sending ticket %s to Gemini", ticket.ticket_id)
-        response = self.model.generate_content(prompt)
-        text = response.text.strip()
+        delay = initial_delay
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.debug("Sending ticket %s to Gemini (attempt %d/%d)", ticket.ticket_id, attempt, max_retries)
+                response = self._client.models.generate_content(
+                    model=self._model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_INSTRUCTION,
+                    ),
+                )
+                text = response.text.strip()
+                break
+            except Exception as exc:
+                if attempt == max_retries:
+                    logger.error("All %d attempts failed to classify ticket %s: %s", max_retries, ticket.ticket_id, exc)
+                    raise
+                logger.warning(
+                    "Attempt %d failed for ticket %s due to transient error: %s. Retrying in %.2f seconds...",
+                    attempt, ticket.ticket_id, exc, delay
+                )
+                time.sleep(delay)
+                delay *= 2.0
 
         # Strip markdown code fences if the model adds them anyway
         text = re.sub(r"^```(?:json)?\s*", "", text)
@@ -175,7 +196,7 @@ class GeminiClassifier:
             raise ValueError(f"Invalid JSON from Gemini: {exc}") from exc
 
         logger.info(
-            "Ticket %s → %s / %s",
+            "Ticket %s -> %s / %s",
             ticket.ticket_id,
             result.get("category"),
             result.get("priority"),

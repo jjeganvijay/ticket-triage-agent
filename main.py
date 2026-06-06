@@ -50,13 +50,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
-    print("\n🤖  Ticket Triage Agent — starting run\n" + "=" * 60)
+    print("\n[AGENT] Ticket Triage Agent -- starting run\n" + "=" * 60)
 
     agent = TicketTriageAgent()
     run = agent.run(args.folder, verbose=not args.quiet)
 
     if not run.results:
-        print("\n⚠  No results produced. Check the tickets folder and API key.")
+        print("\n[WARN] No results produced. Check the tickets folder and API key.")
         return 1
 
     # Persist
@@ -64,7 +64,7 @@ def main() -> int:
     csv_path = export_to_csv(run.results, output_path=args.csv)
 
     print(f"\n{'='*60}")
-    print(f"✅  Triage complete!")
+    print("[OK] Triage complete!")
     print(f"   Tickets processed : {run.processed}/{run.total_tickets}")
     print(f"   Errors            : {run.errors}")
     print(f"   CSV output        : {csv_path}")
@@ -78,7 +78,7 @@ def main() -> int:
     for r in run.results:
         print(
             f"{r.ticket_id:<10} {r.category.value:<18} {r.priority.value:<14} "
-            f"{r.reasoning[:50]}…"
+            f"{r.reasoning[:50]}..."
         )
 
     return 0

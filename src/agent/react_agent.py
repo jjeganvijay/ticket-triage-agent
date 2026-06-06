@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, List
 
 from src.classifier.gemini_classifier import GeminiClassifier
@@ -54,7 +54,7 @@ class TicketTriageAgent:
     @staticmethod
     def _print_step(step: AgentStep) -> None:
         print(
-            f"\n{'─'*60}\n"
+            f"\n{'-'*60}\n"
             f"[Step {step.step}]\n"
             f"  Thought    : {step.thought}\n"
             f"  Action     : {step.action}\n"
@@ -99,7 +99,7 @@ class TicketTriageAgent:
             ids = [t.ticket_id for t in tickets]
             observation = f"Found {len(tickets)} ticket(s): {ids}"
         except (FileNotFoundError, NotADirectoryError) as exc:
-            observation = f"ERROR — {exc}"
+            observation = f"ERROR -- {exc}"
             emit(self._make_step(thought, action, observation))
             return run
 
@@ -120,7 +120,7 @@ class TicketTriageAgent:
         results: List[TriageResult] = []
         for ticket in tickets:
             desc_preview = (
-                ticket.description[:70] + "…"
+                ticket.description[:70] + "..."
                 if len(ticket.description) > 70
                 else ticket.description
             )
@@ -135,12 +135,12 @@ class TicketTriageAgent:
                     category=raw["category"],
                     priority=raw["priority"],
                     reasoning=raw["reasoning"],
-                    processed_at=datetime.utcnow(),
+                    processed_at=datetime.now(timezone.utc),
                 )
                 results.append(result)
                 run.processed += 1
                 observation = (
-                    f"→ {result.category} / {result.priority}. "
+                    f"=> {result.category} / {result.priority}. "
                     f"Reasoning: {result.reasoning}"
                 )
                 if on_result:
