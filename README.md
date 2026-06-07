@@ -229,6 +229,29 @@ Table: `triage_results`
 
 ---
 
+## Assumptions & Limitations
+
+### Assumptions
+* **Input tickets** are valid JSON files and properly formatted.
+* **Categories** are strictly limited to `Bug`, `Feature Request`, `Billing`, and `Other`.
+* **Priorities** are strictly limited to `P1`, `P2`, `P3`, and `P4`.
+* **Ollama Usage:** When using the Ollama provider, the Ollama server must be installed and actively running on the host machine.
+
+### Limitations
+* **Classification Quality:** Classification accuracy heavily depends on the underlying LLM's capabilities and reasoning constraints.
+* **Hardware Constraints:** Local Ollama execution performance is tied directly to available system resources (CPU/RAM/GPU).
+* **Environment:** The project is intended for mock/demo workloads and not enterprise-scale transaction throughput without queuing systems.
+* **Consistency:** Results and reasoning verbosity may vary between Gemini and Ollama models due to different architectures.
+
+---
+
+## Demo Video
+
+**Demo Video Link:**
+[TO BE ADDED BEFORE FINAL SUBMISSION]
+
+---
+
 ## AI Usage
 
 See [docs/AI_USAGE.md](docs/AI_USAGE.md) for full details on the Gemini integration, few-shot prompting strategy, and limitations.

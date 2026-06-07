@@ -5,7 +5,7 @@
 - **SDK**: `google-generativeai` Python SDK
 - **Access**: Via Gemini API (key stored in `.env`, never committed)
 
-## How AI Is Used
+## What AI Helped With
 
 The Gemini model is used exclusively for **ticket classification**. For every support ticket, the agent sends a structured prompt to Gemini and expects a JSON response containing:
 
@@ -15,17 +15,59 @@ The Gemini model is used exclusively for **ticket classification**. For every su
 | `priority` | P1 Critical, P2 High, P3 Medium, P4 Low |
 | `reasoning` | Short 1–2 sentence explanation |
 
+AI coding assistants also helped accelerate development by:
+- Scaffolding the initial project structure and Pydantic models
+- Suggesting the ReAct agent loop design pattern
+- Drafting the few-shot prompt examples and output parsing logic
+- Writing boilerplate FastAPI routes and pytest fixtures
+
+## What AI Got Wrong
+
+Not all AI-generated suggestions were usable without correction. Key issues encountered:
+
+1. **Outdated SDK method names**: The initial AI suggestion used the older `google.generativeai` SDK. The import path and client initialization had to be manually corrected to match the current `google-genai` library API.
+
+2. **Incorrect JSON parsing approach**: The AI initially suggested using a simple `response.text` extraction. In practice, the model sometimes wraps output in markdown code fences (` ```json ... ``` `), requiring a regex post-processor to strip those fences before calling `json.loads()`.
+
+3. **Missing Pydantic validation step**: AI-generated code did not include validation of the model response against the `Category` and `Priority` enums. Without this, invalid model outputs would pass silently. A validation layer using `Category(result["category"])` was added manually.
+
+4. **Ollama retry logic**: The first draft of `OllamaClassifier` had no error handling for connection timeouts. Exponential backoff retry logic had to be added manually after observing failures when the local Ollama server was slow to respond.
+
+5. **Test fixtures needed manual tuning**: AI-generated `pytest` mocks did not correctly patch the module path for the Gemini client, causing import-time failures. All fixtures were debugged and corrected by hand.
+
+> **Note**: All AI-generated code was reviewed, tested, and validated before inclusion. No code was committed without passing all 26 unit tests.
+
 ## Prompting Strategy
 
-### Few-Shot Prompting
-Six labelled examples are prepended to every prompt to anchor the model's output format and calibration:
+### Key Development Prompts
 
+The following prompts were critical during development:
+
+**Classifier System Prompt** (used in production):
+```
+You are a support ticket classifier. Classify the following ticket and return ONLY a raw JSON object.
+
+Categories: Bug, Feature Request, Billing, Other
+Priorities: P1 Critical, P2 High, P3 Medium, P4 Low
+
+Format:
+{"category": "...", "priority": "...", "reasoning": "..."}
+```
+
+**Few-Shot Prompting** — Six labelled examples prepended to every prompt:
 1. Double billing → Billing / P2 High
 2. iOS crash → Bug / P2 High
 3. Dark mode request → Feature Request / P4 Low
 4. Account deletion → Bug / P1 Critical
 5. PDF export question → Other / P4 Low
 6. Payment gateway 500 → Bug / P1 Critical
+
+**Development Scaffolding Prompt**:
+```
+Build a ReAct-style agent loop in Python that: reads JSON tickets from a folder,
+classifies each using an LLM, persists results to SQLite and CSV, and exposes
+results via a FastAPI REST API. Use Pydantic for all data models.
+```
 
 ### Output Parsing
 The model is instructed to return **only** a raw JSON object. A regex post-processor strips any accidental markdown code fences before `json.loads()` is called.
