@@ -261,8 +261,10 @@ Table: `triage_results`
 
 ## Demo Video
 
-**Demo Video Link:**
-[Watch the Demo](https://www.loom.com/share/4240b436a4f34cfab02ab91fbd2ff32d)
+**Demo Video:**
+
+- 🎬 **Loom** (recommended): [Watch the Demo](https://www.loom.com/share/4240b436a4f34cfab02ab91fbd2ff32d)
+- 📁 **Google Drive** (if Loom is unavailable): [Watch on Drive](https://drive.google.com/file/d/1U91WTnQRVKzadkqucm5n88GFlhgmaKCm/view?usp=sharing)
 
 ---
 
