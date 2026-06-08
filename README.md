@@ -79,6 +79,13 @@ ticket-triage-agent/
 │   └── sample_tickets/  # Sample JSON ticket files (T001–T005)
 ├── database/            # SQLite DB (auto-created, git-ignored)
 ├── output/              # CSV output (auto-created, git-ignored)
+├── resumes/             # Team member resumes (PDF)
+│   ├── member1.pdf
+│   ├── member2.pdf
+│   ├── member3.pdf
+│   └── member4.pdf
+├── video/               # Demo video reference
+│   └── demo_video_link.txt
 ├── docs/
 │   └── AI_USAGE.md      # AI usage documentation
 ├── main.py              # CLI entry point
@@ -248,7 +255,7 @@ Table: `triage_results`
 ## Demo Video
 
 **Demo Video Link:**
-[TO BE ADDED BEFORE FINAL SUBMISSION]
+[Watch the Demo](https://www.loom.com/share/4240b436a4f34cfab02ab91fbd2ff32d)
 
 ---
 
