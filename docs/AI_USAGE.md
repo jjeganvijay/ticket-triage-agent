@@ -1,13 +1,13 @@
 # AI Usage Note
 
 ## Tool Used
-- **Model**: Google Gemini 2.5 Flash (`gemini-2.5-flash`)
-- **SDK**: `google-generativeai` Python SDK
-- **Access**: Via Gemini API (key stored in `.env`, never committed)
+- **Model**: Google Gemini 2.5 Flash (`gemini-2.5-flash`) or local Ollama model (default: `llama3.2`) — selected via `LLM_PROVIDER` env variable
+- **SDK**: `google-genai` Python SDK (Gemini) and `httpx` (Ollama REST API)
+- **Access**: Via Gemini API (key stored in `.env`, never committed) or local Ollama server (default: `http://localhost:11434`)
 
 ## What AI Helped With
 
-The Gemini model is used exclusively for **ticket classification**. For every support ticket, the agent sends a structured prompt to Gemini and expects a JSON response containing:
+The model (resolved dynamically via `LLM_PROVIDER` environment variable) is used exclusively for **ticket classification**. For every support ticket, the agent sends a structured prompt to the selected LLM and expects a JSON response containing:
 
 | Field | Values |
 |---|---|
@@ -33,7 +33,7 @@ Not all AI-generated suggestions were usable without correction. Key issues enco
 
 4. **Ollama retry logic**: The first draft of `OllamaClassifier` had no error handling for connection timeouts. Exponential backoff retry logic had to be added manually after observing failures when the local Ollama server was slow to respond.
 
-5. **Test fixtures needed manual tuning**: AI-generated `pytest` mocks did not correctly patch the module path for the Gemini client, causing import-time failures. All fixtures were debugged and corrected by hand.
+5. **Test fixtures needed manual tuning**: AI-generated `pytest` mocks did not correctly patch the module path for the Gemini and Ollama clients, causing import-time failures. All fixtures were debugged and corrected by hand.
 
 > **Note**: All AI-generated code was reviewed, tested, and validated before inclusion. No code was committed without passing all 26 unit tests.
 
@@ -74,9 +74,9 @@ The model is instructed to return **only** a raw JSON object. A regex post-proce
 
 ## ReAct Agent Loop
 
-The agent wraps Gemini calls inside a **Thought → Action → Observation** loop:
+The agent wraps LLM calls inside a **Thought → Action → Observation** loop:
 - **Thought**: Reason about the next ticket to process
-- **Action**: Call `gemini_classifier.classify(ticket)`
+- **Action**: Call `gemini_classifier.classify(ticket)` or `ollama_classifier.classify(ticket)` (resolved dynamically based on provider)
 - **Observation**: Record the result or error
 
 This trace is persisted in the `AgentRun` object and returned by the API.

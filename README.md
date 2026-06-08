@@ -1,6 +1,6 @@
 # Ticket Triage Agent 
 
-An **AI-powered support ticket triage system** built with Google Gemini, FastAPI, and SQLite. The agent reads JSON support tickets, classifies them by category and priority using a ReAct-style loop with few-shot prompting, and persists results to a database and CSV file.
+An **AI-powered support ticket triage system** built with Google Gemini / Ollama, FastAPI, and SQLite. The agent reads JSON support tickets, classifies them by category and priority using a ReAct-style loop with few-shot prompting, and persists results to a database and CSV file.
 
 ---
 
@@ -17,10 +17,10 @@ An **AI-powered support ticket triage system** built with Google Gemini, FastAPI
 │  └─────────────┘                                │          │
 │                                                 ▼          │
 │                                     ┌───────────────────┐  │
-│                                     │ GeminiClassifier  │  │
+│                                     │  LLM Classifier   │  │
 │                                     │(src/classifier/)  │  │
 │                                     │  Few-Shot Prompt  │  │
-│                                     │  gemini-2.5-flash │  │
+│                                     │ Gemini / Ollama   │  │
 │                                     └─────────┬─────────┘  │
 │                                               │            │
 │                           ┌───────────────────┼──────────┐ │
@@ -50,7 +50,7 @@ Thought: "Discover tickets in folder"
     Observation: "Found 5 ticket(s): [T001, T002, ...]"
 
 Thought: "Classify ticket T001"
-  Action: gemini_classifier.classify(T001)
+  Action: classifier.classify(T001)   # gemini or ollama, based on LLM_PROVIDER
     Observation: "→ Bug / P2 High. Reasoning: ..."
 
 ... (repeat for each ticket)
@@ -69,7 +69,7 @@ ticket-triage-agent/
 ├── src/
 │   ├── models/          # Pydantic data models (Ticket, TriageResult, AgentRun)
 │   ├── loader/          # JSON ticket file loader
-│   ├── classifier/      # Gemini API classifier with few-shot prompting
+│   ├── classifier/      # LLM classifier (Gemini/Ollama) with few-shot prompting
 │   ├── agent/           # ReAct-style agent loop
 │   ├── export/          # CSV exporter
 │   ├── database/        # SQLite persistence layer
@@ -127,10 +127,17 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env and set your GEMINI_API_KEY
+# Edit .env and set configuration variables (see .env.example)
 ```
 
-Get a free API key at: https://aistudio.google.com/app/apikey
+By default, the agent uses Google Gemini. To configure:
+* **Gemini**: Set `LLM_PROVIDER=gemini` and `GEMINI_API_KEY` in `.env`. Get a key at [AI Studio](https://aistudio.google.com/app/apikey).
+* **Ollama**: Start your local Ollama server, pull the model (`ollama pull llama3.2`), and configure `.env`:
+  ```ini
+  LLM_PROVIDER=ollama
+  OLLAMA_MODEL=llama3.2
+  OLLAMA_BASE_URL=http://localhost:11434
+  ```
 
 ---
 
@@ -174,7 +181,7 @@ API docs available at: http://localhost:8000/docs
 pytest tests/ -v
 ```
 
-All tests are fully mocked — no real Gemini API calls are made.
+All tests are fully mocked — no real LLM API calls are made.
 
 ---
 
@@ -261,7 +268,7 @@ Table: `triage_results`
 
 ## AI Usage
 
-See [docs/AI_USAGE.md](docs/AI_USAGE.md) for full details on the Gemini integration, few-shot prompting strategy, and limitations.
+See [docs/AI_USAGE.md](docs/AI_USAGE.md) for full details on the Gemini/Ollama integration, few-shot prompting strategy, and limitations.
 
 ---
 
