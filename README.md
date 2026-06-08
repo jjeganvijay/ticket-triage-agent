@@ -1,4 +1,4 @@
-# Ticket Triage Agent 🎫🤖
+# Ticket Triage Agent 
 
 An **AI-powered support ticket triage system** built with Google Gemini, FastAPI, and SQLite. The agent reads JSON support tickets, classifies them by category and priority using a ReAct-style loop with few-shot prompting, and persists results to a database and CSV file.
 
