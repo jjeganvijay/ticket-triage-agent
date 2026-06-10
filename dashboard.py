@@ -21,6 +21,9 @@ import plotly.express as px
 # Local imports
 try:
     from src.classifier.gemini_classifier import GeminiClassifier, Ticket
+    from src.models.ticket import TriageResult, Category, Priority
+    from src.database.db import save_results, get_all_results
+    from src.export.csv_exporter import export_to_csv
 except Exception as exc:  # pragma: no cover
     st.error(f"Failed to import classifier: {exc}")
     st.stop()
@@ -610,6 +613,25 @@ elif selected_module == "Ticket Intake Workflow":
                     st.rerun()
             with col_b2:
                 if st.button("Approve & Dispatch 🚀", type="primary"):
+                    try:
+                        res = st.session_state.ai_result
+                        triage_result = TriageResult(
+                            ticket_id=st.session_state.draft_ticket['id'],
+                            description=st.session_state.draft_ticket['desc'],
+                            category=Category(res.get('category')),
+                            priority=Priority(res.get('priority')),
+                            reasoning=res.get('reasoning')
+                        )
+                        save_results([triage_result], DB_PATH)
+                        
+                        # Sync to CSV so it updates the file too
+                        all_res = get_all_results(DB_PATH)
+                        export_to_csv(all_res, CSV_PATH)
+                        
+                        # Bust the data cache so Dashboard Overview refreshes immediately
+                        load_operations_data.clear()
+                    except Exception as e:
+                        st.error(f"Failed to save ticket to database: {e}")
                     st.session_state.wizard_step = 4
                     st.rerun()
 
