@@ -317,15 +317,7 @@ st.markdown("""
 <div class="top-nav">
     <div class="top-nav-left">
         <div class="top-nav-logo">💠</div>
-        Ticket Triage Agent <span style="color:#8b949e; font-weight:400; font-size:0.9rem; margin-left:8px;">| Operations Platform</span>
-    </div>
-    <div class="top-nav-center">
-        <div class="search-bar">⌘ K  Global AI Search...</div>
-    </div>
-    <div class="top-nav-right">
-        <div>Env: <span style="color:#c9d1d9;">Production</span></div>
-        <div class="status-badge"><div class="status-dot"></div> System Healthy</div>
-        <div style="font-size: 1.2rem;">🔔 👤</div>
+        Ticket Triage Agent
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -347,7 +339,6 @@ with st.sidebar:
     selected_module_raw = st.radio("Navigation", 
         [
             "📊 Dashboard Overview", 
-            "🧠 AI Command Center", 
             "📥 Ticket Intake Workflow", 
             "📈 Operations Analytics", 
             "⚠️ Risk Center", 
@@ -359,17 +350,13 @@ with st.sidebar:
     # Strip emojis for logical comparisons
     selected_module = selected_module_raw.split(" ", 1)[1] if " " in selected_module_raw else selected_module_raw
     
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 24px 0;'>", unsafe_allow_html=True)
-    if st.button("⚙️ Platform Settings", use_container_width=True):
-        st.toast("Access Denied: Platform Settings require Enterprise Admin privileges.", icon="🔒")
-    if st.button("📋 Audit Logs", use_container_width=True):
-        st.toast("Audit Logs are currently synchronizing with the central SIEM. Try again later.", icon="⏳")
+    
 
 # ---------------------------------------------------------------------------
 # MODULE: Dashboard Overview (Hero Section)
 # ---------------------------------------------------------------------------
 if selected_module == "Dashboard Overview":
-    st.markdown("<div class='section-header'>📊 Executive Intelligence Overview</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>📊 Dashboard Overview</div>", unsafe_allow_html=True)
     
     if df.empty:
         st.info("System is currently idle. No ticket data found.")
@@ -423,65 +410,7 @@ if selected_module == "Dashboard Overview":
             height=400
         )
 
-# ---------------------------------------------------------------------------
-# MODULE: AI Command Center
-# ---------------------------------------------------------------------------
-elif selected_module == "AI Command Center":
-    st.markdown("<div class='section-header'>🧠 AI Operations Center</div>", unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.markdown("<div style='background:rgba(22,27,34,0.6); padding:20px; border-radius:8px; border:1px solid rgba(88,166,255,0.2);'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align:center; margin-bottom:0;'>System Health</h3>", unsafe_allow_html=True)
-        
-        # Radial Gauge for AI Confidence
-        fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = avg_conf,
-            number = {'suffix': "%", 'font': {'color': '#ffffff'}},
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            gauge = {
-                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#30363d"},
-                'bar': {'color': "#58a6ff"},
-                'bgcolor': "rgba(0,0,0,0)",
-                'borderwidth': 2,
-                'bordercolor': "#30363d",
-                'steps': [
-                    {'range': [0, 80], 'color': "rgba(248,81,73,0.2)"},
-                    {'range': [80, 95], 'color': "rgba(210,153,34,0.2)"},
-                    {'range': [95, 100], 'color': "rgba(46,160,67,0.2)"}
-                ],
-            }
-        ))
-        fig.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20), paper_bgcolor="rgba(0,0,0,0)", font={'color': "#8b949e"})
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.markdown("""
-        <div style="display:flex; justify-content:space-between; margin-top:10px;">
-            <span style="color:#8b949e">Inference Latency:</span> <strong style="color:#3fb950">1.24s</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-            <span style="color:#8b949e">Classification Success:</span> <strong style="color:#3fb950">99.8%</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-            <span style="color:#8b949e">Automation Rate:</span> <strong style="color:#ffffff">87.2%</strong>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
-    with col2:
-        # Throughput Chart
-        st.markdown("<h4 style='margin-top:0;'>Classification Throughput (Last 24h)</h4>", unsafe_allow_html=True)
-        hours = [f"{i:02d}:00" for i in range(24)]
-        vols = [random.randint(50, 200) for _ in range(24)]
-        fig_vol = px.area(x=hours, y=vols, color_discrete_sequence=['#ab7df8'])
-        fig_vol.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showgrid=False, color='#8b949e'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', color='#8b949e'),
-            margin=dict(l=0, r=0, t=10, b=0), height=320
-        )
-        st.plotly_chart(fig_vol, use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # MODULE: Ticket Intake Workflow
@@ -651,7 +580,7 @@ elif selected_module == "Ticket Intake Workflow":
 # MODULE: Operations Analytics
 # ---------------------------------------------------------------------------
 elif selected_module == "Operations Analytics":
-    st.markdown("<div class='section-header'>📈 Enterprise Operations Analytics</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>📈 Operations Analytics</div>", unsafe_allow_html=True)
     
     if df.empty:
         st.info("Insufficient data for analytics.")
